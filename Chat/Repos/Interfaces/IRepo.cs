@@ -10,5 +10,6 @@ namespace ChatAPI.Repos.Interfaces
         public Task<IQueryable<T>> FindAsync(Expression<Func<T, bool>> expression);
         public Task<IEnumerable<T>> FindAllAsync();
         public Task<int> SaveAsync();
+        public Task DeleteAllAsync();
     }
 }

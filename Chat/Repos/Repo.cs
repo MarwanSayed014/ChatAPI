@@ -31,7 +31,7 @@ namespace ChatAPI.Repos
 
         public async Task<IQueryable<T>> FindAsync(Expression<Func<T, bool>> expression)
         {
-            return _context.Set<T>().Where(expression);
+            return  _context.Set<T>().Where(expression);
         }
 
         public async Task<int> SaveAsync()
@@ -42,6 +42,11 @@ namespace ChatAPI.Repos
         public async Task UpdateAsync(T entity)
         {
             _context.Entry(entity).State = EntityState.Modified;
+        }
+
+        public async Task DeleteAllAsync()
+        {
+            _context.Set<T>().RemoveRange(_context.Set<T>().ToList());
         }
     }
 }

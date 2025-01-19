@@ -9,5 +9,10 @@ namespace ChatAPI.Repos
         public UserConnectionsRepo(ApplicationDbContext context) : base(context)
         {
         }
+
+        public async Task RemoveAllConnectionsAsync()
+        {
+            await DeleteAllAsync();
+        }
     }
 }

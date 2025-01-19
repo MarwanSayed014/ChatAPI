@@ -8,6 +8,7 @@ using ChatAPI.Repos.Interfaces;
 using ChatAPI.Services;
 using ChatAPI.Services.Interfaces;
 using ChatAPI.Types;
+using Microsoft.AspNet.SignalR.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -114,7 +115,10 @@ namespace ChatAPI
 
             app.MapControllers();
             //Remove All Connection From Connection Table
-
+            var dbContext = new ApplicationDbContext(dbOptionsBuilder.Options);
+            var userConnectionsManager = new UserConnectionsManager(new UserConnectionsRepo(dbContext));
+            userConnectionsManager.RemoveAllConnectionsAsync().Wait();
+            dbContext.Dispose();
 
             app.Run();
         }
