@@ -81,8 +81,7 @@ namespace ChatAPI.Services
 
         public async Task<IEnumerable<PrivateMessage>> GetPendingPrivateMessagesAsync(Guid userId)
         {
-            List<PrivateChat> privateChats = (await _userPrivateChatRepo.FindAsync(x => x.UserId == userId))
-                .Include(x => x.PrivateChat).Select(x=> x.PrivateChat).ToList();
+            List<PrivateChat> privateChats = (await _userPrivateChatRepo.GetPrivateChatAsync(userId)).ToList();
             List<PrivateMessage> PendingMessages = new List<PrivateMessage>();
             foreach (var chat in privateChats)
             {

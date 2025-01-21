@@ -11,6 +11,11 @@ namespace ChatAPI.Repos
         {
         }
 
+        public async Task<string> GetUserName(Guid userId)
+        {
+            return (await FindAsync(x => x.Id == userId)).Select(x => x.Name).SingleOrDefault();
+        }
+
         public async Task<bool> UserExists(Guid userId)
         {
             return (await FindAsync(x=> x.Id == userId)).SingleOrDefault() == null ? false : true;

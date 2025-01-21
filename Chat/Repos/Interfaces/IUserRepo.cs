@@ -6,5 +6,6 @@ namespace ChatAPI.Repos.Interfaces
     {
         Task<bool> UserExists(Guid userId);
         Task<bool> UserNameExistsAsync(string userName);
+        Task<string> GetUserName(Guid userId);
     }
 }

@@ -42,5 +42,11 @@ namespace ChatAPI.Repos
             return currentUserPrivateChats.Intersect(anotherUserPrivateChats).
                 SingleOrDefault();
         }
+
+        public async Task<IEnumerable<PrivateChat>> GetPrivateChatAsync(Guid userId)
+        {
+            return  (await FindAsync(x => x.UserId == userId))
+                .Include(x => x.PrivateChat).Select(x => x.PrivateChat);
+        }
     }
 }

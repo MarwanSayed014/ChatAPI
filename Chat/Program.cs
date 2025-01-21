@@ -88,6 +88,7 @@ namespace ChatAPI
             builder.Services.AddSingleton<IUserManager, UserManager>();
             builder.Services.AddSingleton<IChatService, ChatService>();
             builder.Services.AddSingleton<IUserConnectionsManager, UserConnectionsManager>();
+            builder.Services.AddSingleton<IChatHubManager, ChatHubManager>();
 
 
             //Auth

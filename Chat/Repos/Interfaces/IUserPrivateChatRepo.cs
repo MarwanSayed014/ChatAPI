@@ -7,5 +7,6 @@ namespace ChatAPI.Repos.Interfaces
         Task AddUsersToPrivateChat(IEnumerable<Guid> usersIds, Guid chatId);
         Task<IEnumerable<PrivateChat>> GetAllUserPrivateChatsAsync(Guid userId);
         Task<PrivateChat> GetPrivateChatAsync(Guid currentUserId, Guid anotherUserId);
+        Task<IEnumerable<PrivateChat>> GetPrivateChatAsync(Guid userId);
     }
 }
