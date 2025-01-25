@@ -16,12 +16,28 @@ namespace ChatAPI.Attributes
 
         public override bool IsValid(object? value)
         {
-            var file = value as IFormFile;
-            if (file != null)
+            if (_nullable == true && value == null)
+                return true;
+            if (value is IFormFile)
             {
-                return ServerFile.CheckFileExtension(file, _validTypes);
+                var file = value as IFormFile;
+                if (file != null)
+                {
+                    return ServerFile.CheckFileExtension(file, _validTypes);
+                }
             }
-            return _nullable;
+            else if (value is IEnumerable<IFormFile>)
+            {
+                var files = value as List<IFormFile>;
+                foreach (var file in files)
+                {
+                    if (file != null && ServerFile.CheckFileExtension(file, _validTypes) == false)
+                        return false;
+                }
+                return true;
+            }
+            return false;
+
         }
 
     }

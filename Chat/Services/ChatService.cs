@@ -1,9 +1,11 @@
 ﻿using ChatAPI.Dtos;
+using ChatAPI.Helpers;
 using ChatAPI.Models;
 using ChatAPI.Repos.Interfaces;
 using ChatAPI.Services.Interfaces;
 using ChatAPI.Types;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace ChatAPI.Services
 {
@@ -30,6 +32,8 @@ namespace ChatAPI.Services
             if (CurrentUserId == messageDto.AnotherUserId) return (null,null);
             if (!await _userRepo.UserExists(CurrentUserId) || !await _userRepo.UserExists(messageDto.AnotherUserId))
                 return (null, null);
+            if(string.IsNullOrEmpty(messageDto.Text) && (messageDto.Files.Count() == 0 || messageDto.Files == null))
+                return (null, null);
 
             PrivateChat privateChat = await _userPrivateChatRepo.GetPrivateChatAsync(CurrentUserId, messageDto.AnotherUserId);
             if (privateChat == null)
@@ -49,14 +53,34 @@ namespace ChatAPI.Services
             }
 
 
-            //TODO : Upload attachments
             var privateMessage = new PrivateMessage
             {
                 Text = messageDto.Text,
                 PrivateChatId = privateChat.Id,
                 Date = DateTime.Now,
-                MessageStatus = MessageStatus.Sent
+                MessageStatus = MessageStatus.Sent,
+                SenderId = CurrentUserId
             };
+            List<string> attachmentPaths = new List<string>();
+            if (messageDto.Files != null)
+            {
+                foreach (var item in messageDto.Files)
+                {
+                    if (item != null)
+                    {
+                        //Upload attachment
+                        var dir = Directory.GetCurrentDirectory() + "/wwwroot/Images/PrivateChatsAttachments/";
+                        var ex = ServerFile.GetExtension(item.FileName);
+                        var imageName = Guid.NewGuid() + ex;
+                        var imagePath = dir + imageName;
+                        ServerFile.Upload(item, imagePath);
+                        //attachmentPaths.Add($"/Images/PrivateChatsAttachments/{imageName}");
+                        privateMessage.AttachmentPaths += $"/Images/PrivateChatsAttachments/{imageName},";
+                    }
+                }
+            }
+            //privateMessage.AttachmentPaths = "sfsafas.png";
+
             await _privateMessageRepo.CreateAsync(privateMessage);
             await _privateMessageRepo.SaveAsync();
             return (privateChat, privateMessage);
@@ -81,16 +105,8 @@ namespace ChatAPI.Services
 
         public async Task<IEnumerable<PrivateMessage>> GetPendingPrivateMessagesAsync(Guid userId)
         {
-            List<PrivateChat> privateChats = (await _userPrivateChatRepo.GetPrivateChatAsync(userId)).ToList();
-            List<PrivateMessage> PendingMessages = new List<PrivateMessage>();
-            foreach (var chat in privateChats)
-            {
-                PendingMessages.AddRange(
-                    (await _privateMessageRepo.FindAsync(x=>x.PrivateChatId == chat.Id
-                    && x.MessageStatus == MessageStatus.Sent))
-                    .ToList()
-                    );
-            }
+            List<PrivateMessage> PendingMessages = (await _privateMessageRepo.FindAsync(x => x.MessageStatus == MessageStatus.Sent
+                                        && x.SenderId != userId)).ToList();
             return PendingMessages;
         }
     }

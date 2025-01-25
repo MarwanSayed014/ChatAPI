@@ -22,5 +22,9 @@ namespace ChatAPI.Models
         public Guid GroupChatId { get; set; }
         [ForeignKey("GroupChatId")]
         public virtual GroupChat GroupChat { get; set; }
+
+        public Guid SenderId { get; set; }
+        [ForeignKey("SenderId")]
+        public virtual User Sender { get; set; }
     }
 }

@@ -14,8 +14,7 @@ namespace ChatAPI.Models
         [MaxLength(250)]
         public string Text { get; set; }
 
-        [MaxLength(10)]
-        public List<string>? AttachmentPaths { get; set; }
+        public string? AttachmentPaths { get; set; }
 
         [Required]
         public DateTime Date { get; set; }
@@ -26,5 +25,8 @@ namespace ChatAPI.Models
 
         [Required]
         public MessageStatus MessageStatus { get; set; }
+        public Guid SenderId { get; set; }
+        [ForeignKey("SenderId")]
+        public virtual User Sender { get; set; }
     }
 }

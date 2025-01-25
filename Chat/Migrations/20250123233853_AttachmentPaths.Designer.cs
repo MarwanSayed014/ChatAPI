@@ -4,6 +4,7 @@ using ChatAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChatAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250123233853_AttachmentPaths")]
+    partial class AttachmentPaths
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -76,9 +79,6 @@ namespace ChatAPI.Migrations
                     b.Property<Guid>("GroupChatId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("SenderId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasMaxLength(250)
@@ -87,8 +87,6 @@ namespace ChatAPI.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("GroupChatId");
-
-                    b.HasIndex("SenderId");
 
                     b.ToTable("GroupMessages");
                 });
@@ -140,9 +138,6 @@ namespace ChatAPI.Migrations
                     b.Property<Guid>("PrivateChatId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("SenderId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasMaxLength(250)
@@ -151,8 +146,6 @@ namespace ChatAPI.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("PrivateChatId");
-
-                    b.HasIndex("SenderId");
 
                     b.ToTable("PrivateMessages");
                 });
@@ -252,15 +245,7 @@ namespace ChatAPI.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ChatAPI.Models.User", "Sender")
-                        .WithMany()
-                        .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("GroupChat");
-
-                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("ChatAPI.Models.GroupMessageStatus", b =>
@@ -290,15 +275,7 @@ namespace ChatAPI.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ChatAPI.Models.User", "Sender")
-                        .WithMany()
-                        .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("PrivateChat");
-
-                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("ChatAPI.Models.UserConnection", b =>

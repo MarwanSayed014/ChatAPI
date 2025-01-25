@@ -8,6 +8,8 @@ using ChatAPI.Repos.Interfaces;
 using ChatAPI.Services;
 using ChatAPI.Services.Interfaces;
 using ChatAPI.Types;
+using Microsoft.AspNet.SignalR;
+using Microsoft.AspNet.SignalR.Hubs;
 using Microsoft.AspNet.SignalR.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -94,6 +96,9 @@ namespace ChatAPI
             //Auth
             builder.Services.AddSingleton<IAuthentication, Authentication>();
 
+
+
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -108,6 +113,7 @@ namespace ChatAPI
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapHub<ChatHub>("/Chat");

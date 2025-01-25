@@ -1,0 +1,140 @@
+﻿using ChatAPI.Dtos;
+using ChatAPI.Models;
+using ChatAPI.Repos.Interfaces;
+using ChatAPI.Services.Interfaces;
+using Microsoft.AspNetCore.SignalR;
+using System.Security.Claims;
+using System.Text.RegularExpressions;
+using XAct;
+
+namespace ChatAPI.Services
+{
+    public class ChatHubManager : IChatHubManager
+    {
+        public IChatService _chatService { get; }
+        public IUserConnectionsManager _userConnectionsManager { get; }
+        public IUserRepo _userRepo { get; }
+
+        public ChatHubManager(IChatService chatService, IUserConnectionsManager userConnectionsManager,
+            IUserRepo userRepo)
+        {
+            _chatService = chatService;
+            _userConnectionsManager = userConnectionsManager;
+            _userRepo = userRepo;
+        }
+
+
+        public async Task PrivateMessageingAsync(IHubClients clients, IGroupManager groups,
+                                                Guid currentUserId, PrivateMessageDto messageDto)
+        {
+            string currentUserName = await _userRepo.GetUserName(currentUserId);
+            (PrivateChat privateChat, PrivateMessage privateMessage) = await _chatService.PrivateMessageingAsync(currentUserId, messageDto);
+            if (privateChat != null)
+            {
+                //add to private chat group
+                var currentUserConnectionIds = await _userConnectionsManager.GetUserConnectionsId(currentUserId);
+                foreach (var conId in currentUserConnectionIds)
+                {
+                    await groups.AddToGroupAsync(conId, privateChat.Id.ToString());
+                }
+
+                //Add other userIds To private chat group
+                var anotherUserConnectionIds = await _userConnectionsManager.GetUserConnectionsId(messageDto.AnotherUserId);
+                foreach (var conId in anotherUserConnectionIds)
+                {
+                    await groups.AddToGroupAsync(conId, privateChat.Id.ToString());
+                }
+
+                //Broadcasting message to all anpther user
+                //if(clients is IHubCallerClients)
+                //    ((IHubCallerClients)clients).Group(privateChat.Id.ToString()).SendAsync("newPrivateMessage", currentUserId, currentUserName, privateMessage);
+
+
+                clients.Group(privateChat.Id.ToString()).SendAsync("newPrivateMessage", currentUserId, currentUserName, privateMessage);
+
+                //Update message Status to delivered if another user is online
+                if (anotherUserConnectionIds.Count() >= 1)
+                {
+                    await _chatService.MessageDeliveredAsync(privateMessage.Id);
+                    //if (clients is IHubCallerClients)
+                        //((IHubCallerClients)clients).Group(privateChat.Id.ToString()).SendAsync("privateMessageStatusChanged", $"{privateMessage.Id} is Delivered", privateMessage);
+
+                    //if (clients is IHubClients)
+                    clients.Group(privateChat.Id.ToString()).SendAsync("privateMessageStatusChanged", $"{privateMessage.Id} is Delivered", privateMessage);
+                }
+
+                //TODO: message Status to read 
+            }
+        }
+
+  
+
+        public async Task OnConnectedAsync(IHubCallerClients clients, IGroupManager groups, 
+            Guid currentUserId, string connectionId)
+        {
+            string currentUserName = await _userRepo.GetUserName(currentUserId);
+            List<PrivateChat> userPrivateChats = _chatService.GetAllUserPrivateChatsAsync(currentUserId).WaitAndGetResult().ToList();
+            bool wasOnline = _userConnectionsManager.IsOnline(currentUserId).WaitAndGetResult();
+
+
+            //Add To Connection Table
+            _userConnectionsManager.CreateUserConnectionAsync(new UserConnection
+            {
+                SignalRConnectionId = connectionId,
+                UserId = currentUserId
+            }).Wait();
+
+            //Add To All Private Chats
+            foreach (var item in userPrivateChats)
+            {
+                groups.AddToGroupAsync(connectionId, item.Id.ToString()).Wait();
+            }
+
+            //add to all groups
+
+
+
+            //Create Online Group And Add User To It And Notify
+            //TODO: Notify Only [Friends]
+            if (!wasOnline)
+            {
+                clients.AllExcept(connectionId).SendAsync("userstatus", currentUserName, "Online");
+            }
+
+            //Push Pending Private Messages
+            List<PrivateMessage> privateMessages = _chatService.GetPendingPrivateMessagesAsync(currentUserId).WaitAndGetResult().ToList();
+            foreach (var PrivateMessage in privateMessages)
+            {
+                _chatService.MessageDeliveredAsync(PrivateMessage.Id).Wait();
+                clients.Group(PrivateMessage.PrivateChatId.ToString()).SendAsync("privateMessageStatusChanged", $"{PrivateMessage.Id} is Delivered", PrivateMessage);
+            }
+
+            //Pending Messages Delivered
+        }
+
+        public async Task OnDisconnectedAsync(IHubCallerClients clients, IGroupManager groups, Guid currentUserId, string connectionId)
+        {
+            string currentUserName = await _userRepo.GetUserName(currentUserId);
+            List<PrivateChat> userPrivateChats = _chatService.GetAllUserPrivateChatsAsync(currentUserId).WaitAndGetResult().ToList();
+            _userConnectionsManager.RemoveUserConnectionAsync(connectionId).Wait();
+
+            //Remove From All private Chats Group
+            foreach (var item in userPrivateChats)
+            {
+                groups.RemoveFromGroupAsync(connectionId, item.Id.ToString());
+            }
+
+            //Remove From All Groups
+
+            //Remove User From Online Group And Notify
+            //TODO: Notify Only [Friends]
+            bool stillOnline = _userConnectionsManager.IsOnline(currentUserId).WaitAndGetResult();
+            if (!stillOnline)
+            {
+                clients.All.SendAsync("userstatus", currentUserName, "Offline");
+            }
+        }
+    }
+
+    
+}

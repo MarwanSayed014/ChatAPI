@@ -1,4 +1,5 @@
 ﻿using ChatAPI.Dtos;
+using ChatAPI.Helpers;
 using ChatAPI.Models;
 using ChatAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -21,19 +22,24 @@ namespace ChatAPI.Hubs
         {
             _chatHubManager = chatHubManager;
         }
-        [HubMethodName("privatechat")]
-        //take Dto not parameters
-        public async Task PrivateChat(PrivateMessageDto messageDto)
-        {
-            Guid currentUserId = new Guid();
-            bool result = Guid.TryParse(Context.User.FindFirst(ClaimTypes.NameIdentifier).Value, out currentUserId);
-            if (result == true) 
-            {
-                _chatHubManager.PrivateMessageingAsync(Clients,Groups, currentUserId, messageDto).Wait(); 
+        //[HubMethodName("privatechat")]
+        //public async Task PrivateChat(PrivateTextMessageDto messageDto)
+        //{
+        //    Guid currentUserId = new Guid();
+        //    bool result = Guid.TryParse(Context.User.FindFirst(ClaimTypes.NameIdentifier).Value, out currentUserId);
+        //    if (result == true) 
+        //    {
+        //        PrivateMessageDto privateMessageDto = new PrivateMessageDto
+        //        {
+        //            AnotherUserId = messageDto.AnotherUserId,
+        //            Text = messageDto.Text
+        //        };
+        //        _chatHubManager.PrivateMessageingAsync(Clients, Groups, currentUserId, privateMessageDto).Wait(); 
 
-            }
+        //    }
 
-        }
+        //}
+
         public override Task OnConnectedAsync()
         {
             Guid currentUserId = new Guid();
