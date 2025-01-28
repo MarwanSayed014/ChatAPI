@@ -7,7 +7,7 @@ namespace ChatAPI.Data
 {
     public class ApplicationDbContext : DbContext
     {
-        public DbSet<Friend> Friends { get; set; }
+        public DbSet<Friendship> Friendships { get; set; }
         public DbSet<GroupChat> GroupChats { get; set; }
         public DbSet<GroupMessage> GroupMessages { get; set; }
         public DbSet<GroupMessageStatus> GroupMessageStatuses { get; set; }
@@ -28,7 +28,7 @@ namespace ChatAPI.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Friend>().HasKey(x => new { x.RequestorUserId, x.RespondentUserId });
+            modelBuilder.Entity<Friendship>().HasKey(x => new { x.RequestorUserId, x.RespondentUserId, x.FriendshipId });
             modelBuilder.Entity<GroupMessageStatus>().HasKey(x => new { x.GroupChatId, x.UserId });
             modelBuilder.Entity<UserGroupChat>().HasKey(x => new { x.GroupChatId, x.UserId });
             modelBuilder.Entity<UserPrivateChat>().HasKey(x => new { x.PrivateChatId, x.UserId });

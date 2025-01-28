@@ -76,7 +76,7 @@ namespace ChatAPI
 
             //Repos
             builder.Services.AddSingleton<IUserRepo, UserRepo>();
-            builder.Services.AddSingleton<IFriendRepo, FriendRepo>();
+            builder.Services.AddSingleton<IFriendshipRepo, FriendshipRepo>();
             builder.Services.AddSingleton<IGroupChatRepo, GroupChatRepo>();
             builder.Services.AddSingleton<IGroupMessageRepo, GroupMessageRepo>();
             builder.Services.AddSingleton<IGroupMessageStatusRepo, GroupMessageStatusRepo>();
@@ -91,6 +91,8 @@ namespace ChatAPI
             builder.Services.AddSingleton<IChatService, ChatService>();
             builder.Services.AddSingleton<IUserConnectionsManager, UserConnectionsManager>();
             builder.Services.AddSingleton<IChatHubManager, ChatHubManager>();
+            builder.Services.AddSingleton<IMessageManager, MessageManager>();
+            builder.Services.AddSingleton<IFriendshipManager, FriendshipManager>();
 
 
             //Auth

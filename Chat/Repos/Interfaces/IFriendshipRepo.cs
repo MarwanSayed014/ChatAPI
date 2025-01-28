@@ -2,7 +2,7 @@
 
 namespace ChatAPI.Repos.Interfaces
 {
-    public interface IFriendRepo : IRepo<Friend>
+    public interface IFriendshipRepo : IRepo<Friendship>
     {
     }
 }
