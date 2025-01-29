@@ -22,12 +22,6 @@ namespace ChatAPI.Services
             _userConnectionsManager = userConnectionsManager;
             _userRepo = userRepo;
         }
-
-
-        
-
-  
-
         public async Task OnConnectedAsync(IHubCallerClients clients, IGroupManager groups, 
             Guid currentUserId, string connectionId)
         {

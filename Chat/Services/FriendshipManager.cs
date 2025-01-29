@@ -1,4 +1,5 @@
 ﻿using ChatAPI.Dtos;
+using ChatAPI.Hubs;
 using ChatAPI.Models;
 using ChatAPI.Repos.Interfaces;
 using ChatAPI.Services.Interfaces;
@@ -20,7 +21,7 @@ namespace ChatAPI.Services
         }
 
 
-        public async Task<bool> AcceptFriendRequestAsync(IHubClients clients, IGroupManager groups, Guid currentUserId, Guid friendshipId)
+        public async Task<bool> AcceptFriendRequestAsync(Microsoft.AspNetCore.SignalR.IHubContext<ChatHub> hubContext, Guid currentUserId, Guid friendshipId)
         {
             var friendship = (await _friendshipRepo.FindAsync(x => x.FriendshipId == friendshipId)).
                 Include(x=> x.RequestorUser).Include(x=> x.RespondentUser).SingleOrDefault();
@@ -35,21 +36,28 @@ namespace ChatAPI.Services
             var RespondentUserIds = await _userConnectionsManager.GetUserConnectionsId(currentUserId);
             foreach (var conId in RespondentUserIds)
             {
-                await clients.Client(conId).SendAsync("AcceptFriendShipRequest", friendship.RespondentUser.Id, $"{friendship.RespondentUser.Name} Accept {friendship.RequestorUser.Name} friend request");
+                await hubContext.Clients.Client(conId).SendAsync("AcceptFriendShipRequest", friendship.RespondentUserId, $"{friendship.RespondentUserId} Accept {friendship.RequestorUserId} friend request");
+                await hubContext.Groups.AddToGroupAsync(conId, friendship.FriendshipId.ToString());
             }
 
 
             var RequestorUserIds = await _userConnectionsManager.GetUserConnectionsId(friendship.RequestorUserId);
             foreach (var conId in RequestorUserIds)
             {
-                await clients.Client(conId).SendAsync("AcceptFriendShipRequest", friendship.RespondentUser.Id, $"{friendship.RespondentUser.Name} Accept your friend request");
+                await hubContext.Clients.Client(conId).SendAsync("AcceptFriendShipRequest", friendship.RespondentUserId, $"{friendship.RespondentUserId} Accept your friend request");
+                await hubContext.Groups.AddToGroupAsync(conId, friendship.FriendshipId.ToString());
             }
 
+            if(RespondentUserIds?.Count() > 0)
+                await hubContext.Clients.Groups(friendship.FriendshipId.ToString()).SendAsync("userstatus", friendship.RespondentUser.Name, "Online");
+
+            if (RequestorUserIds?.Count() > 0)
+                await hubContext.Clients.Groups(friendship.FriendshipId.ToString()).SendAsync("userstatus", friendship.RequestorUser.Name, "Online");
 
             return true;
         }
 
-        public async Task<bool> SendFriendRequestAsync(IHubClients clients, IGroupManager groups, Guid requestorUserId, Guid respondentUserId)
+        public async Task<bool> SendFriendRequestAsync(Microsoft.AspNetCore.SignalR.IHubContext<ChatHub> hubContext, Guid requestorUserId, Guid respondentUserId)
         {
             if(requestorUserId == respondentUserId) return false;
 
@@ -73,18 +81,21 @@ namespace ChatAPI.Services
             var RespondentUserIds = await _userConnectionsManager.GetUserConnectionsId(friendship.RespondentUserId);
             foreach (var conId in RespondentUserIds)
             {
-                await groups.AddToGroupAsync(conId, friendship.FriendshipId.ToString());
+                await hubContext.Clients.Client(conId).SendAsync("FriendShipRequest", friendship.FriendshipId, $"{friendship.RequestorUserId} Send Friend Request To You");
             }
 
+            if (RespondentUserIds?.Count() > 0)
+            {
+                friendship.IsDelivered = true;
+                await _friendshipRepo.UpdateAsync(friendship);
+                await _friendshipRepo.SaveAsync();
+            } 
 
             var RequestorUserIds = await _userConnectionsManager.GetUserConnectionsId(friendship.RequestorUserId);
             foreach (var conId in RequestorUserIds)
             {
-                await groups.AddToGroupAsync(conId, friendship.FriendshipId.ToString());
+                await hubContext.Clients.Client(conId).SendAsync("FriendShipRequest", friendship.FriendshipId, $"Your Sent a Friend Request To {friendship.RespondentUserId}");
             }
-            await clients.Group(friendship.FriendshipId.ToString()).SendAsync("FriendShipRequest", friendship.FriendshipId, $"{friendship.RequestorUser.Name} Send Friend Request To You");
-            await clients.Group(friendship.FriendshipId.ToString()).SendAsync("FriendShipRequest", friendship.FriendshipId, $"Your Sent a Friend Request To {friendship.RespondentUser.Name}");
-
 
             return true;
         }

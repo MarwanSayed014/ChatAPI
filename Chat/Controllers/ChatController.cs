@@ -41,7 +41,7 @@ namespace ChatAPI.Controllers
             
             if (result == true)
             {
-                await _messageManager.PrivateMessageingAsync(_hubContext.Clients, _hubContext.Groups, currentUserId, messageDto);
+                await _messageManager.PrivateMessageingAsync(_hubContext, currentUserId, messageDto);
                 return Ok();
             }
             return BadRequest();

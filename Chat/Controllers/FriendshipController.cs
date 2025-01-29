@@ -40,7 +40,8 @@ namespace ChatAPI.Controllers
                 if (result == false) return Unauthorized();
                 if (!await _userConnectionsManager.IsOnline(currentUserId))
                     return BadRequest();
-                return await _friendshipManager.SendFriendRequestAsync(_hubContext.Clients, _hubContext.Groups, currentUserId, respondentUserId) ? Ok(): BadRequest();
+                var hub = _hubContext;
+                return await _friendshipManager.SendFriendRequestAsync(hub, currentUserId, respondentUserId) ? Ok(): BadRequest();
             }
             catch (Exception)
             {
@@ -60,7 +61,7 @@ namespace ChatAPI.Controllers
                 if (result == false) return Unauthorized();
                 if (!await _userConnectionsManager.IsOnline(currentUserId))
                     return BadRequest();
-                return await _friendshipManager.AcceptFriendRequestAsync(_hubContext.Clients, _hubContext.Groups, currentUserId, friendshipId) ? Ok() : BadRequest();
+                return await _friendshipManager.AcceptFriendRequestAsync(_hubContext, currentUserId, friendshipId) ? Ok() : BadRequest();
             }
             catch (Exception)
             {

@@ -1,4 +1,5 @@
 ﻿using ChatAPI.Dtos;
+using ChatAPI.Hubs;
 using ChatAPI.Models;
 using ChatAPI.Repos.Interfaces;
 using ChatAPI.Services.Interfaces;
@@ -19,7 +20,7 @@ namespace ChatAPI.Services
             _userConnectionsManager = userConnectionsManager;
             _userRepo = userRepo;
         }
-        public async Task PrivateMessageingAsync(IHubClients clients, IGroupManager groups,
+        public async Task PrivateMessageingAsync(Microsoft.AspNetCore.SignalR.IHubContext<ChatHub> hubContext,
                                                 Guid currentUserId, PrivateMessageDto messageDto)
         {
             string currentUserName = await _userRepo.GetUserName(currentUserId);
@@ -30,32 +31,26 @@ namespace ChatAPI.Services
                 var currentUserConnectionIds = await _userConnectionsManager.GetUserConnectionsId(currentUserId);
                 foreach (var conId in currentUserConnectionIds)
                 {
-                    await groups.AddToGroupAsync(conId, privateChat.Id.ToString());
+                    await hubContext.Groups.AddToGroupAsync(conId, privateChat.Id.ToString());
                 }
 
                 //Add other userIds To private chat group
                 var anotherUserConnectionIds = await _userConnectionsManager.GetUserConnectionsId(messageDto.AnotherUserId);
                 foreach (var conId in anotherUserConnectionIds)
                 {
-                    await groups.AddToGroupAsync(conId, privateChat.Id.ToString());
+                    await hubContext.Groups.AddToGroupAsync(conId, privateChat.Id.ToString());
                 }
 
-                //Broadcasting message to all anpther user
-                //if(clients is IHubCallerClients)
-                //    ((IHubCallerClients)clients).Group(privateChat.Id.ToString()).SendAsync("newPrivateMessage", currentUserId, currentUserName, privateMessage);
 
 
-                clients.Group(privateChat.Id.ToString()).SendAsync("newPrivateMessage", currentUserId, currentUserName, privateMessage);
+                hubContext.Clients.Group(privateChat.Id.ToString()).SendAsync("newPrivateMessage", currentUserId, currentUserName, privateMessage);
 
                 //Update message Status to delivered if another user is online
                 if (anotherUserConnectionIds.Count() >= 1)
                 {
                     await _chatService.MessageDeliveredAsync(privateMessage.Id);
-                    //if (clients is IHubCallerClients)
-                    //((IHubCallerClients)clients).Group(privateChat.Id.ToString()).SendAsync("privateMessageStatusChanged", $"{privateMessage.Id} is Delivered", privateMessage);
 
-                    //if (clients is IHubClients)
-                    clients.Group(privateChat.Id.ToString()).SendAsync("privateMessageStatusChanged", $"{privateMessage.Id} is Delivered", privateMessage);
+                    hubContext.Clients.Group(privateChat.Id.ToString()).SendAsync("privateMessageStatusChanged", $"{privateMessage.Id} is Delivered", privateMessage);
                 }
 
                 //TODO: message Status to read 

@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using ChatAPI.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 namespace ChatAPI.Services.Interfaces
 {
     public interface IFriendshipManager
     {
-        public Task<bool> SendFriendRequestAsync(IHubClients clients, IGroupManager groups, Guid requestorUserId, Guid respondentUserId);
-        public Task<bool> AcceptFriendRequestAsync(IHubClients clients, IGroupManager groups, Guid currentUserId, Guid friendshipId);
+        public Task<bool> SendFriendRequestAsync(Microsoft.AspNetCore.SignalR.IHubContext<ChatHub> hubContext, Guid requestorUserId, Guid respondentUserId);
+        public Task<bool> AcceptFriendRequestAsync(Microsoft.AspNetCore.SignalR.IHubContext<ChatHub> hubContext, Guid currentUserId, Guid friendshipId);
     }
 }
