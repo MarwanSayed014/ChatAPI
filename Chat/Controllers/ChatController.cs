@@ -17,14 +17,12 @@ namespace ChatAPI.Controllers
     [Route("ChatAPI/[controller]")]
     public class ChatController : ControllerBase
     {
-        public Microsoft.AspNetCore.SignalR.IHubContext<ChatHub> _hubContext { get; }
-        public IMessageManager _messageManager { get; }
+        public IPrivateMessageManager _messageManager { get; }
         public IUserConnectionsManager _userConnectionsManager { get; }
 
-        public ChatController(Microsoft.AspNetCore.SignalR.IHubContext<ChatHub> hubContext, IMessageManager messageManager
+        public ChatController(IPrivateMessageManager messageManager
             , IUserConnectionsManager userConnectionsManager)
         {
-            _hubContext = hubContext;
             _messageManager = messageManager;
             _userConnectionsManager = userConnectionsManager;
         }
@@ -41,7 +39,7 @@ namespace ChatAPI.Controllers
             
             if (result == true)
             {
-                await _messageManager.PrivateMessageingAsync(_hubContext, currentUserId, messageDto);
+                await _messageManager.PrivateMessageingAsync(currentUserId, messageDto);
                 return Ok();
             }
             return BadRequest();
