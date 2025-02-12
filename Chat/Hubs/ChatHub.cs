@@ -48,7 +48,7 @@ namespace ChatAPI.Hubs
 
             if (result == true  && conId != null) 
             {
-                _chatHubManager.OnConnectedAsync(Clients, Groups, currentUserId, conId).Wait();
+                _chatHubManager.OnConnectedAsync(currentUserId, conId).Wait();
             }
 
             return base.OnConnectedAsync();
@@ -62,7 +62,7 @@ namespace ChatAPI.Hubs
 
             if (result == true && conId != null)
             {
-                _chatHubManager.OnDisconnectedAsync(Clients, Groups, currentUserId, conId).Wait();
+                _chatHubManager.OnDisconnectedAsync(currentUserId, conId).Wait();
             }
             return base.OnDisconnectedAsync(exception);
         }
