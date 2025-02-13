@@ -19,5 +19,6 @@ namespace ChatAPI.Models
         public FriendshipStatus FriendshipStatus { get; set; }
 
         public bool IsDelivered { get; set; }
+        public bool NotifyAcceptance { get; set; }
     }
 }
