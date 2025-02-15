@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using ChatAPI.Types;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ChatAPI.Models
 {
@@ -10,5 +11,6 @@ namespace ChatAPI.Models
         public Guid GroupChatId { get; set; }
         [ForeignKey("GroupChatId")]
         public virtual GroupChat GroupChat { get; set; }
+        public virtual GroupUserRolesTypes GroupUserRolesTypes { get; set; }
     }
 }
