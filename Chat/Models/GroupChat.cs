@@ -11,9 +11,10 @@ namespace ChatAPI.Models
         [MinLength(2)]
         [MaxLength(50)]
         public string Name { get; set; }
-
+        
+        [Required]
         [MinLength(2)]
-        public string CoverImgPath { get; set; }
+        public string CoverImgPath { get; set; } = "/Images/Groups/group.png";
 
     }
 }
