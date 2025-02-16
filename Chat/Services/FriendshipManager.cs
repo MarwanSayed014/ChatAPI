@@ -54,6 +54,13 @@ namespace ChatAPI.Services
             if (RequestorUserIds?.Count() > 0)
                 await hubContext.Clients.Groups(friendship.FriendshipId.ToString()).SendAsync("userstatus", friendship.RequestorUser.Name, "Online");
 
+            if(RequestorUserIds?.Count() == 0)
+            {
+                friendship.NotifyAcceptance = true;
+                _friendshipRepo.UpdateAsync(friendship);
+                _friendshipRepo.SaveAsync();
+            }
+
             return true;
         }
 
@@ -73,7 +80,7 @@ namespace ChatAPI.Services
                 RequestorUserId = requestorUserId,
                 RespondentUserId = respondentUserId,
                 FriendshipStatus = FriendshipStatus.Pending,
-                FriendshipId = Guid.NewGuid()
+                FriendshipId = Guid.NewGuid(),
             };
             await _friendshipRepo.CreateAsync(friendship);
             await _friendshipRepo.SaveAsync();
@@ -98,6 +105,51 @@ namespace ChatAPI.Services
             }
 
             return true;
+        }
+
+        public async Task<IEnumerable<Friendship>> GetFriendsAsync(Guid userId)
+        {
+            return (await _friendshipRepo.GetFriendsAsync(userId)).ToList();
+        }
+
+        public async Task<IEnumerable<Friendship>> GetPendingFriendRequestsAsync(Guid userId)
+        {
+            return (await _friendshipRepo.GetPendingFriendRequestsAsync(userId)).ToList();
+        }
+
+        public async Task<IEnumerable<Friendship>> GetRecentlyAcceptedRequestsAsync(Guid userId)
+        {
+            return (await _friendshipRepo.GetRecentlyAcceptedRequestAsync(userId)).ToList();
+        }
+
+        public async Task RequestDeliveredAsync(Guid friendshipId)
+        {
+            Friendship friendship = (await _friendshipRepo.FindAsync(x=> x.FriendshipId == friendshipId)).
+                SingleOrDefault();
+
+            if(friendship != null)
+            {
+                friendship.IsDelivered = true;
+                await _friendshipRepo.UpdateAsync(friendship);
+                await _friendshipRepo.SaveAsync();
+            }
+        }
+
+        public async Task AcceptanceNotifiedAsync(Guid friendshipId)
+        {
+            var friendship = (await _friendshipRepo.FindAsync(x => x.FriendshipId == friendshipId))
+                                .SingleOrDefault();
+            if(friendship != null)
+            {
+                if (friendship.FriendshipStatus == FriendshipStatus.Friends)
+                {
+                    friendship.NotifyAcceptance = false;
+                    await _friendshipRepo.UpdateAsync(friendship);
+                    await _friendshipRepo.SaveAsync();
+                }
+                
+            }
+            
         }
     }
 }
