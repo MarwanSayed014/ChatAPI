@@ -6,9 +6,7 @@ namespace ChatAPI.Services.Interfaces
     public interface IChatHubManager
     {
 
-        public Task OnConnectedAsync(IHubCallerClients clients, IGroupManager groups,
-                                                  Guid currentUserId, string connectionId);
-        public Task OnDisconnectedAsync(IHubCallerClients clients, IGroupManager groups,
-                                                  Guid currentUserId, string connectionId);
+        public Task OnConnectedAsync(Guid currentUserId, string connectionId);
+        public Task OnDisconnectedAsync(Guid currentUserId, string connectionId);
     }
 }
