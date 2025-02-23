@@ -1,5 +1,6 @@
 
 using ChatAPI.Data;
+using ChatAPI.EventHandlers;
 using ChatAPI.Helpers;
 using ChatAPI.Helpers.Interfaces;
 using ChatAPI.Hubs;
@@ -88,15 +89,18 @@ namespace ChatAPI
             //Services
             builder.Services.AddSingleton<IPasswordManager, PasswordManager>();
             builder.Services.AddSingleton<IUserManager, UserManager>();
-            builder.Services.AddSingleton<IChatService, ChatService>();
+            builder.Services.AddSingleton<IPrivateChatService, PrivateChatService>();
             builder.Services.AddSingleton<IUserConnectionsManager, UserConnectionsManager>();
             builder.Services.AddSingleton<IChatHubManager, ChatHubManager>();
-            builder.Services.AddSingleton<IMessageManager, MessageManager>();
+            builder.Services.AddSingleton<IPrivateMessageManager, PrivateMessageManager>();
             builder.Services.AddSingleton<IFriendshipManager, FriendshipManager>();
 
 
             //Auth
             builder.Services.AddSingleton<IAuthentication, Authentication>();
+
+            //Event Handlers
+            builder.Services.AddSingleton<NotificationsHandler>();
 
 
 
