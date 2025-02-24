@@ -39,6 +39,9 @@ namespace ChatAPI.Migrations
                     b.Property<bool>("IsDelivered")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("NotifyAcceptance")
+                        .HasColumnType("bit");
+
                     b.HasKey("RequestorUserId", "RespondentUserId", "FriendshipId");
 
                     b.HasIndex("RespondentUserId");
